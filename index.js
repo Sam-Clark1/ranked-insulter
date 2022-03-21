@@ -7,7 +7,9 @@ const prefix = '-';
 
 const Discord = require("discord.js");
 const client = new Discord.Client({intents: ["GUILDS","GUILD_MESSAGES"]});
-const axios = require('axios')
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 const {players} = require('./data/players.json');
 
@@ -29,7 +31,7 @@ client.on("messageCreate", message => {
   const args = message.content.slice(prefix.length).split(/ +/);
   
   const command = args.shift().toLowerCase(); //removes and returns first item from array which will be 'add' 
-  const summoner = args.pop().toLocaleLowerCase(); //removes and returns last item from array which will be the summoner name 
+  const summoner = args.pop().toLowerCase(); //removes and returns last item from array which will be the summoner name 
   
   if (command === "add"){
     axios({
@@ -38,13 +40,29 @@ client.on("messageCreate", message => {
       headers: { }
     })
     .then(function (response) {
-      console.log(JSON.stringify(response.data.puuid));
+      if (!players){
+        players = [];
+      };
+
+      const summonerPuuid = response.data.puuid;
+
+      playerObj = {
+        summonerName:`${summoner}`,
+        puuid:`${summonerPuuid}`
+      };
+
+      players.push(playerObj);
+
+      fs.writeFileSync(
+        path.join(__dirname, './data/players.json'),
+        JSON.stringify({players}, null, 2)
+    );
     })
     .catch(function (error) {
       console.log(error);
     });
     
-    client.channels.cache.get(channel_id).send("works")
+    client.channels.cache.get(channel_id).send("added summoner")
     return;
   }
 })
