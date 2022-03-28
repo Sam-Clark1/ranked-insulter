@@ -11,7 +11,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
-const {players} = require('./data/players.json');
+let {players} = require('./data/players.json');
 
 // // returns object that has puuid
 // `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`
@@ -34,6 +34,14 @@ client.on("messageCreate", message => {
   const summoner = args.pop().toLowerCase(); //removes and returns last item from array which will be the summoner name 
   
   if (command === "add"){
+    let exists;
+    players.forEach(e => {
+      if(e.summonerName === summoner){
+      exists = true
+      client.channels.cache.get(channel_id).send("Summoner already added.")
+    }});
+    if (exists) return;
+    
     axios({
       method: 'get',
       url: `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`,
@@ -65,11 +73,28 @@ client.on("messageCreate", message => {
     client.channels.cache.get(channel_id).send("added summoner")
     return;
   }
+
+  if (command === 'remove'){
+    const filteredPlayers = players.filter(selectedPlayer => selectedPlayer.summonerName != summoner);
+    players = filteredPlayers;
+    console.log(filteredPlayers);
+
+    fs.writeFileSync(
+        path.join(__dirname, './data/players.json'),
+        JSON.stringify({players}, null, 2)
+    );
+    client.channels.cache.get(channel_id).send("removed summoner");
+  }
 })
 
-// setInterval(checkPlayer, 2000)
+const test = () => {
+  console.log('test')
+  }
 
-// const checkPlayer = () =>{
+interval = () => {
+  setInterval(test, 1000)
+}
 
-// }
+interval()
+
 client.login(bot_key)
