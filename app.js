@@ -1,7 +1,16 @@
 require('dotenv').config();
 
+const dayjs = require('dayjs');
+const UTC = require('dayjs/plugin/UTC');
+var localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
+dayjs.extend(UTC);
+
+// eslint-disable-next-line no-undef
 const riot_key = process.env.API_KEY;
+// eslint-disable-next-line no-undef
 const bot_key = process.env.TOKEN;
+// eslint-disable-next-line no-undef
 const channel_id = process.env.CHANNEL_ID;
 const prefix = '-';
 
@@ -12,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 
 let {players} = require('./data/players.json');
+
 
 // // returns object that has puuid
 // `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`
@@ -50,11 +60,11 @@ client.on("messageCreate", message => {
     .then(function (response) {
       if (!players){
         players = [];
-      };
+      }
 
       const summonerPuuid = response.data.puuid;
 
-      playerObj = {
+      let playerObj = {
         summonerName:`${summoner}`,
         puuid:`${summonerPuuid}`
       };
@@ -62,6 +72,7 @@ client.on("messageCreate", message => {
       players.push(playerObj);
 
       fs.writeFileSync(
+        // eslint-disable-next-line no-undef
         path.join(__dirname, './data/players.json'),
         JSON.stringify({players}, null, 2)
     );
@@ -69,7 +80,8 @@ client.on("messageCreate", message => {
     .catch(function (error) {
       console.log(error);
     });
-    
+    clearInterval(interval);
+    interval();
     client.channels.cache.get(channel_id).send("added summoner")
     return;
   }
@@ -80,21 +92,25 @@ client.on("messageCreate", message => {
     console.log(filteredPlayers);
 
     fs.writeFileSync(
+        // eslint-disable-next-line no-undef
         path.join(__dirname, './data/players.json'),
         JSON.stringify({players}, null, 2)
     );
+    clearInterval(interval);
+    interval();
     client.channels.cache.get(channel_id).send("removed summoner");
+    return;
   }
-})
+});
 
 const test = () => {
-  console.log('test')
-  }
+  console.log(dayjs(1645938093697).utc().local().format('lll'))
+};
 
-interval = () => {
+const interval = () => {
   setInterval(test, 1000)
-}
+};
 
-interval()
+interval();
 
 client.login(bot_key)
