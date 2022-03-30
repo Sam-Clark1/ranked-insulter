@@ -12,6 +12,8 @@ const riot_key = process.env.API_KEY;
 const bot_key = process.env.TOKEN;
 // eslint-disable-next-line no-undef
 const channel_id = process.env.CHANNEL_ID;
+// eslint-disable-next-line no-undef
+const owner = process.env.OWNER;
 const prefix = '=';
 
 const Discord = require("discord.js");
@@ -35,8 +37,11 @@ client.on("ready", () => {
 })
 
 client.on("messageCreate", message =>  {
-  if(!message.content.startsWith(prefix) || message.author.bot || message.channel.name === 'general') return;
-
+  if(!message.content.startsWith(prefix) || 
+  message.author.bot || 
+  message.channel.name === 'general' ||
+  !message.author.username === owner) return;
+  
   // takes message and slices off the prefix, then splits the string into an array with 2 values, the 'add' command and 'summonerName' argument
   const args = message.content.slice(prefix.length).split(/ +/);
   
