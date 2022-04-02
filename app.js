@@ -41,7 +41,7 @@ client.on("messageCreate", message =>  {
   message.author.bot || 
   message.channel.name === 'general' ||
   !message.author.username === owner) return;
-  
+
   // takes message and slices off the prefix, then splits the string into an array with 2 values, the 'add' command and 'summonerName' argument
   const args = message.content.slice(prefix.length).split(/ +/);
   
@@ -111,13 +111,15 @@ client.on("messageCreate", message =>  {
 });
 
 // const test = () => {
-//   console.log(dayjs(1645938093697).utc().local().format('lll'))
+  
 // };
 
-// const interval = () => {
-//   setInterval(test, 1000)
-// };
+const interval = () => {
+  // setInterval(test, 1000)
+  console.log(dayjs(1645938093697).utc().local().format('LL HH:mm:ss:SSS A'))
+  console.log(dayjs().format('LLL'))
+};
 
-// interval();
+interval();
 
 client.login(bot_key)
