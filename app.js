@@ -1,18 +1,17 @@
+/* eslint-disable no-undef */
 require('dotenv').config();
+
+const humanizeDuration = require("humanize-duration");
 
 const dayjs = require('dayjs');
 const UTC = require('dayjs/plugin/UTC');
-var localizedFormat = require('dayjs/plugin/localizedFormat');
-dayjs.extend(localizedFormat);
+const advancedFormat = require('dayjs/plugin/advancedFormat');
 dayjs.extend(UTC);
+dayjs.extend(advancedFormat)
 
-// eslint-disable-next-line no-undef
 const riot_key = process.env.API_KEY;
-// eslint-disable-next-line no-undef
 const bot_key = process.env.TOKEN;
-// eslint-disable-next-line no-undef
 const channel_id = process.env.CHANNEL_ID;
-// eslint-disable-next-line no-undef
 const owner = process.env.OWNER;
 const prefix = '=';
 
@@ -23,14 +22,6 @@ const fs = require('fs');
 const path = require('path');
 
 let {players} = require('./data/players.json');
-
-
-// // returns object that has puuid
-// `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`
-// // returns object with matchid
-// `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?type=ranked&start=0&count=1&api_key=${riot_key}`
-// // returns object with all stats from that game
-// `https://americas.api.riotgames.com/lol/match/v5/matches/${matchid}?api_key=${riot_key}`
 
 client.on("ready", () => {
   console.log(`bot online`)
@@ -84,8 +75,6 @@ client.on("messageCreate", message =>  {
       console.log(error);
       channel.send("summoner not found")
     });
-    // clearInterval(interval);
-    // interval();
     return;
   }
 
@@ -103,23 +92,54 @@ client.on("messageCreate", message =>  {
         path.join(__dirname, './data/players.json'),
         JSON.stringify({players}, null, 2)
     );
-    // clearInterval(interval);
-    // interval();
     channel.send("removed summoner");
     return;
   }
 });
 
-// const test = () => {
-  
-// };
-
 const interval = () => {
-  // setInterval(test, 1000)
-  console.log(dayjs(1645938093697).utc().local().format('LL HH:mm:ss:SSS A'))
-  console.log(dayjs().format('LLL'))
+  players.forEach(e => {
+  axios({
+    method: 'get',
+    url: `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${e.puuid}/ids?type=normal&start=0&count=1&api_key=${riot_key}`,
+    headers: { }
+  })
+  .then(function (response) {
+    axios({
+      method: 'get',
+      url: `https://americas.api.riotgames.com/lol/match/v5/matches/${response.data}?api_key=${riot_key}`,
+      headers: {}
+    })
+    .then(function (matchData) {
+      let summonerIndex = [];
+      for (let i = 0; i < matchData.data.info.participants.length; i++) {
+        const checkSummoner = matchData.data.info.participants[i].puuid
+        checkSummoner === e.puuid ? summonerIndex.push('true') : summonerIndex.push('false')
+      }
+      summonerIndex = summonerIndex.indexOf('true');
+
+      const currentTime = dayjs().utc().local().format('x');
+      const gameEndTimeUnix = matchData.data.info.gameEndTimestamp;
+      const gameEndTimeUnixPlus = gameEndTimeUnix + 2500;
+      const gameEndTimeUnixMinus = gameEndTimeUnix - 2500;
+      
+      const gameWin = matchData.data.info.participants[summonerIndex].win;
+      const gameTimePlayed = humanizeDuration((matchData.data.info.participants[summonerIndex].timePlayed)*1000)
+      const channel = client.channels.cache.get(channel_id);
+      
+      if (currentTime>gameEndTimeUnixMinus && currentTime<gameEndTimeUnixPlus) {
+        if(gameWin){
+          channel.send(`:KEKW: Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing a ranked game! Make fun of them :KEKW:`)
+        }
+      } 
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  });
+  });
 };
 
-interval();
+setInterval(interval, 3000)
 
 client.login(bot_key)
