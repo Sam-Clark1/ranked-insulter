@@ -16,12 +16,14 @@ const owner = process.env.OWNER;
 const prefix = '=';
 
 const Discord = require("discord.js");
-const client = new Discord.Client({intents: ["GUILDS","GUILD_MESSAGES"]});
+const client = new Discord.Client({intents: ["GUILDS","GUILD_MESSAGES","GUILD_EMOJIS_AND_STICKERS"]});
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
 let {players} = require('./data/players.json');
+
+const timeForInterval = (3*players.length)*1000 
 
 client.on("ready", () => {
   console.log(`bot online`)
@@ -31,7 +33,7 @@ client.on("messageCreate", message =>  {
   if(!message.content.startsWith(prefix) || 
   message.author.bot || 
   message.channel.name === 'general' ||
-  !message.author.username === owner) return;
+  message.author.username !== owner) return;
 
   // takes message and slices off the prefix, then splits the string into an array with 2 values, the 'add' command and 'summonerName' argument
   const args = message.content.slice(prefix.length).split(/ +/);
@@ -43,7 +45,7 @@ client.on("messageCreate", message =>  {
     const channel = client.channels.cache.get(channel_id);
 
     const existingPlayers = JSON.stringify(players);
-    if(existingPlayers.includes(summoner)) return channel.send("Summoner already added.");
+    if(existingPlayers.includes(summoner)) return channel.send('Summoner already added.');
 
     axios({
       method: 'get',
@@ -65,7 +67,6 @@ client.on("messageCreate", message =>  {
       players.push(playerObj);
 
       fs.writeFileSync(
-        // eslint-disable-next-line no-undef
         path.join(__dirname, './data/players.json'),
         JSON.stringify({players}, null, 2)
       );
@@ -88,7 +89,6 @@ client.on("messageCreate", message =>  {
     players = filteredPlayers;
 
     fs.writeFileSync(
-        // eslint-disable-next-line no-undef
         path.join(__dirname, './data/players.json'),
         JSON.stringify({players}, null, 2)
     );
@@ -97,11 +97,12 @@ client.on("messageCreate", message =>  {
   }
 });
 
+var count = 0
 const interval = () => {
   players.forEach(e => {
   axios({
     method: 'get',
-    url: `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${e.puuid}/ids?type=normal&start=0&count=1&api_key=${riot_key}`,
+    url: `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${e.puuid}/ids?type=ranked&start=0&count=1&api_key=${riot_key}`,
     headers: { }
   })
   .then(function (response) {
@@ -119,17 +120,21 @@ const interval = () => {
       summonerIndex = summonerIndex.indexOf('true');
 
       const currentTime = dayjs().utc().local().format('x');
-      const gameEndTimeUnix = matchData.data.info.gameEndTimestamp;
-      const gameEndTimeUnixPlus = gameEndTimeUnix + 2500;
-      const gameEndTimeUnixMinus = gameEndTimeUnix - 2500;
       
+      const gameEndTime = matchData.data.info.gameEndTimestamp;
+      const timeRange = timeForInterval*1.666667;
+      const gameEndTimeUpper = gameEndTime + timeRange;
+      const gameEndTimeLower = gameEndTime - timeRange;
+
       const gameWin = matchData.data.info.participants[summonerIndex].win;
-      const gameTimePlayed = humanizeDuration((matchData.data.info.participants[summonerIndex].timePlayed)*1000)
-      const channel = client.channels.cache.get(channel_id);
+      const gameTimePlayed = humanizeDuration((matchData.data.info.participants[summonerIndex].timePlayed)*1000);
       
-      if (currentTime>gameEndTimeUnixMinus && currentTime<gameEndTimeUnixPlus) {
-        if(gameWin){
-          channel.send(`:KEKW: Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing a ranked game! Make fun of them :KEKW:`)
+      const channel = client.channels.cache.get(channel_id);
+      const KEKW = client.emojis.cache.find(emoji => emoji.name === "KEKW");
+
+      if (currentTime>gameEndTimeLower && currentTime<gameEndTimeUpper) {
+        if(!gameWin){
+          channel.send(`${KEKW} Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing an ARAM game! Make fun of them! ${KEKW}`);
         }
       } 
     })
@@ -138,8 +143,9 @@ const interval = () => {
     });
   });
   });
+  console.log(count++);
 };
 
-setInterval(interval, 3000)
+setInterval(interval, timeForInterval);
 
-client.login(bot_key)
+client.login(bot_key);
