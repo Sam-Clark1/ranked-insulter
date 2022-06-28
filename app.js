@@ -23,7 +23,9 @@ const path = require('path');
 
 let {players} = require('./data/players.json');
 
-const timeForInterval = (3*players.length)*1000 
+const timeForInterval = (3*players.length)*1000;
+
+let intervalId;
 
 client.on("ready", () => {
   console.log(`bot online`)
@@ -95,6 +97,22 @@ client.on("messageCreate", message =>  {
     channel.send("removed summoner");
     return;
   }
+
+  if (command === "start" && summoner === "bot") {
+    const channel = client.channels.cache.get(channel_id);
+    if(!intervalId) {
+      intervalId = setInterval(interval, timeForInterval);
+      channel.send("Bot started")
+    }
+  }
+
+  if (command === 'stop' && summoner === 'bot') {
+    const channel = client.channels.cache.get(channel_id);
+    clearInterval(intervalId);
+    intervalId = null;
+    channel.send("Bot stopped")
+  }
+
 });
 
 var count = 0
@@ -133,8 +151,8 @@ const interval = () => {
       const KEKW = client.emojis.cache.find(emoji => emoji.name === "KEKW");
 
       if (currentTime>gameEndTimeLower && currentTime<gameEndTimeUpper) {
-        if(!gameWin){
-          channel.send(`${KEKW} Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing an ARAM game! Make fun of them! ${KEKW}`);
+        if(gameWin){
+          channel.send(`${KEKW} Hey everyone! ${e.summonerName} just won a ranked game in ${gameTimePlayed}! Let's congratualte them! ${KEKW}`);
         }
       } 
     })
@@ -145,7 +163,5 @@ const interval = () => {
   });
   console.log(count++);
 };
-
-setInterval(interval, timeForInterval);
 
 client.login(bot_key);

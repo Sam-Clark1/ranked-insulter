@@ -1,3 +1,20 @@
 {
-  "players": []
+  "players": [
+    {
+      "summonerName": "dunkindonuts",
+      "puuid": "ze_KqPqoBHV8ZeAvyrB69Ity4_Zr62liKMi-99RJLtQvCVy7GSlpy9zAuuYmj4zdUdYQ6qHAQ1VTnA"
+    },
+    {
+      "summonerName": "lolicop",
+      "puuid": "Rn6Gnv4F9SYEoqAKFPtHwGVoylIU0PwT_6KwOGK7vJ9fDkQnOcl3g3D9guZvbe3YkbuVa28U5ozDvQ"
+    },
+    {
+      "summonerName": "vanyebest",
+      "puuid": "o6HcgEufmyK5eCZfXrEiGNkf6NPFYUdaRAzam_U3M4DaQ9GZpOjbPp-eb2OyM-TPQ2rvo72cBAjyVQ"
+    },
+    {
+      "summonerName": "akimbovibrators",
+      "puuid": "XOlqlTiiq-fOPDCe1y3xDXwcTcNDSBRr776NgMGW9gZnwDk0SCTtTHLzYO8U1qMM3JsuEFroCchUjA"
+    }
+  ]
 }
