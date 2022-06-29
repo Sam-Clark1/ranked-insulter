@@ -45,57 +45,67 @@ client.on("messageCreate", message =>  {
   
    if (command === "add"){
     const channel = client.channels.cache.get(channel_id);
-
     const existingPlayers = JSON.stringify(players);
-    if(existingPlayers.includes(summoner)) return channel.send('Summoner already added.');
 
-    axios({
-      method: 'get',
-      url: `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`,
-      headers: { }
-    })
-    .then(function (response) {
-      if (!players){
-        players = [];
+    if (players.length < 6) {
+      if(existingPlayers.includes(summoner)) {
+        channel.send('Summoner already added.');
+      } else {
+          axios({
+            method: 'get',
+            url: `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`,
+            headers: { }
+          })
+          .then(function (response) {
+            if (!players){
+              players = [];
+            }
+      
+            const summonerPuuid = response.data.puuid;
+      
+            let playerObj = {
+              summonerName:`${summoner}`,
+              puuid:`${summonerPuuid}`
+            };
+      
+            players.push(playerObj);
+      
+            fs.writeFileSync(
+              path.join(__dirname, './data/players.json'),
+              JSON.stringify({players}, null, 2)
+            );
+            channel.send("added summoner")
+          })
+          .catch(function (error) {
+            console.log(error);
+            channel.send("summoner not found")
+          });
+        }
+      } else {
+        channel.send("Max number of player added (6)")
       }
-
-      const summonerPuuid = response.data.puuid;
-
-      let playerObj = {
-        summonerName:`${summoner}`,
-        puuid:`${summonerPuuid}`
-      };
-
-      players.push(playerObj);
-
-      fs.writeFileSync(
-        path.join(__dirname, './data/players.json'),
-        JSON.stringify({players}, null, 2)
-      );
-      channel.send("added summoner")
-    })
-    .catch(function (error) {
-      console.log(error);
-      channel.send("summoner not found")
-    });
-    return;
   }
 
   if (command === 'remove'){
     const channel = client.channels.cache.get(channel_id);
+    const existingPlayers = JSON.stringify(players);
 
-    const existingPlayers = JSON.stringify(players)
-    if(!existingPlayers.includes(summoner)) return channel.send("Summoner not found.")
-
-    const filteredPlayers = players.filter(selectedPlayer => selectedPlayer.summonerName != summoner);
-    players = filteredPlayers;
-
-    fs.writeFileSync(
-        path.join(__dirname, './data/players.json'),
-        JSON.stringify({players}, null, 2)
-    );
-    channel.send("removed summoner");
-    return;
+    if (players.length > 0) {
+      if(!existingPlayers.includes(summoner)) {
+        channel.send("Summoner not found.")
+      } else {
+          const filteredPlayers = players.filter(selectedPlayer => selectedPlayer.summonerName != summoner);
+          players = filteredPlayers;
+      
+          fs.writeFileSync(
+              path.join(__dirname, './data/players.json'),
+              JSON.stringify({players}, null, 2)
+          );
+          channel.send("removed summoner");
+      }
+    } else {
+      channel.send("No stored summoners. Use '=add <summoner name>' to add a summoner.")
+    }    
   }
 
   if (command === "bot" && summoner === "start") {
@@ -108,7 +118,7 @@ client.on("messageCreate", message =>  {
         channel.send("Bot is already on!")
       }
     } else {
-      channel.send("No stored summoners. Must add a summoner to turn bot on.")
+      channel.send("No stored summoners. Must add a summoner with '=add <summoner name>' to turn bot on.")
     }
   }
 
@@ -141,7 +151,7 @@ client.on("messageCreate", message =>  {
       })
       channel.send(currentSummoners)
     } else {
-      channel.send("No stored summoners. Use 'add <summoner name> to add a summoner.")
+      channel.send("No stored summoners. Use '=add <summoner name>' to add a summoner.")
     }
   }
 
