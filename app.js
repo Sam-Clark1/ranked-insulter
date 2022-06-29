@@ -47,65 +47,73 @@ client.on("messageCreate", message =>  {
     const channel = client.channels.cache.get(channel_id);
     const existingPlayers = JSON.stringify(players);
 
-    if (players.length < 6) {
-      if(existingPlayers.includes(summoner)) {
-        channel.send('Summoner already added.');
-      } else {
-          axios({
-            method: 'get',
-            url: `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`,
-            headers: { }
-          })
-          .then(function (response) {
-            if (!players){
-              players = [];
-            }
-      
-            const summonerPuuid = response.data.puuid;
-      
-            let playerObj = {
-              summonerName:`${summoner}`,
-              puuid:`${summonerPuuid}`
-            };
-      
-            players.push(playerObj);
-      
-            fs.writeFileSync(
-              path.join(__dirname, './data/players.json'),
-              JSON.stringify({players}, null, 2)
-            );
-            channel.send("added summoner")
-          })
-          .catch(function (error) {
-            console.log(error);
-            channel.send("summoner not found")
-          });
+    if (!intervalStatus) {
+      if (players.length < 6) {
+        if(existingPlayers.includes(summoner)) {
+          channel.send('Summoner already added.');
+        } else {
+            axios({
+              method: 'get',
+              url: `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riot_key}`,
+              headers: { }
+            })
+            .then(function (response) {
+              if (!players){
+                players = [];
+              }
+        
+              const summonerPuuid = response.data.puuid;
+        
+              let playerObj = {
+                summonerName:`${summoner}`,
+                puuid:`${summonerPuuid}`
+              };
+        
+              players.push(playerObj);
+        
+              fs.writeFileSync(
+                path.join(__dirname, './data/players.json'),
+                JSON.stringify({players}, null, 2)
+              );
+              channel.send("added summoner")
+            })
+            .catch(function (error) {
+              console.log(error);
+              channel.send("summoner not found")
+            });
+          }
+        } else {
+          channel.send("Max number of player added (6)");
         }
-      } else {
-        channel.send("Max number of player added (6)")
-      }
+    } else {
+      channel.send("!Turn bot off with '=bot stop' before adding or removing summoners!");
+    }
   }
 
   if (command === 'remove'){
     const channel = client.channels.cache.get(channel_id);
     const existingPlayers = JSON.stringify(players);
 
-    if (players.length > 0) {
-      if(!existingPlayers.includes(summoner)) {
-        channel.send("Summoner not found.")
+    if (!intervalStatus) {
+      if (players.length > 0) {
+        if(!existingPlayers.includes(summoner)) {
+          channel.send("Summoner not found.")
+        } else {
+            const filteredPlayers = players.filter(selectedPlayer => selectedPlayer.summonerName != summoner);
+            players = filteredPlayers;
+        
+            fs.writeFileSync(
+                path.join(__dirname, './data/players.json'),
+                JSON.stringify({players}, null, 2)
+            );
+            channel.send("removed summoner");
+        }
       } else {
-          const filteredPlayers = players.filter(selectedPlayer => selectedPlayer.summonerName != summoner);
-          players = filteredPlayers;
-      
-          fs.writeFileSync(
-              path.join(__dirname, './data/players.json'),
-              JSON.stringify({players}, null, 2)
-          );
-          channel.send("removed summoner");
+        channel.send("No stored summoners. Use '=add <summoner name>' to add a summoner.")
       }
     } else {
-      channel.send("No stored summoners. Use '=add <summoner name>' to add a summoner.")
-    }    
+      channel.send("!Turn bot off with '=bot stop' before adding or removing summoners!");
+    } 
   }
 
   if (command === "bot" && summoner === "start") {
