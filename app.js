@@ -31,6 +31,7 @@ client.on("ready", () => {
   console.log(`bot online`)
 })
 
+// All commands for this bot
 client.on("messageCreate", message =>  {
   if(!message.content.startsWith(prefix) || 
   message.author.bot || 
@@ -43,6 +44,7 @@ client.on("messageCreate", message =>  {
   const command = args.shift().toLowerCase(); //removes and returns first item from array which will be 'add' 
   const summoner = args.pop().toLowerCase(); //removes and returns last item from array which will be the summoner name 
   
+  // Command to add a summoner to database
    if (command === "add"){
     const channel = client.channels.cache.get(channel_id);
     const existingPlayers = JSON.stringify(players);
@@ -90,6 +92,7 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  // Command to remove a summoner from database
   if (command === 'remove'){
     const channel = client.channels.cache.get(channel_id);
     const existingPlayers = JSON.stringify(players);
@@ -116,6 +119,7 @@ client.on("messageCreate", message =>  {
     } 
   }
 
+  // Command to start interval to check each summoner in database for recent games and win/loss status
   if (command === "bot" && summoner === "start") {
     const channel = client.channels.cache.get(channel_id);
     if (players.length > 0) {
@@ -130,6 +134,7 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  // Command to stop bot interval. Bot must be off to add or remove summoners from database
   if (command === 'bot' && summoner === 'stop') {
     const channel = client.channels.cache.get(channel_id);
     if (!intervalStatus) {
@@ -141,6 +146,7 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  // Displays if bot interval is on or off
   if (command === 'bot' && summoner === 'status') {
     const channel = client.channels.cache.get(channel_id);
     if (!intervalStatus) {
@@ -150,6 +156,7 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  // Displays currently stored summoners in database
   if (command === 'current' && summoner === 'summoners') {
     const channel = client.channels.cache.get(channel_id);
     let currentSummoners = '';
@@ -163,6 +170,7 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  // Displays a list of available commands for this bot
   if (command === 'bot' && summoner === 'help') {
     const channel = client.channels.cache.get(channel_id);
     channel.send("List of Avaliable Commands:\n 1. =add <summoner name>  --> Adds a summoner to database to be checked\n 2. =remove <summoner name>  --> Removes a summoner from database\n 3. =bot start  --> Starts interval to check each stored summoners most recent ranked game\n 4. =bot stop  --> Stops interval that checks each summoner in database\n 5. =bot status  --> Tells you if interval is on or off\n 6. =current summoners  --> Displays currently stored summoners in database\n 7. =bot help  --> Displays a list of commands for this bot ")
@@ -170,7 +178,7 @@ client.on("messageCreate", message =>  {
 
 });
 
-var count = 0
+// Interval that uses axios to access RIOT API to determine if a summoner stored in database has just won or lost a ranked game
 const interval = () => {
   players.forEach(e => {
   axios({
@@ -218,7 +226,6 @@ const interval = () => {
       console.log(error);
     });
   });
-  console.log(count++);
 };
 
 client.login(bot_key);
