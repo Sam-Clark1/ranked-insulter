@@ -25,7 +25,7 @@ let {players} = require('./data/players.json');
 
 const timeForInterval = (3*players.length)*1000;
 
-let intervalId;
+let intervalStatus;
 
 client.on("ready", () => {
   console.log(`bot online`)
@@ -98,19 +98,51 @@ client.on("messageCreate", message =>  {
     return;
   }
 
-  if (command === "start" && summoner === "bot") {
+  if (command === "bot" && summoner === "start") {
     const channel = client.channels.cache.get(channel_id);
-    if(!intervalId) {
-      intervalId = setInterval(interval, timeForInterval);
-      channel.send("Bot started")
+    if (players.length > 0) {
+      if(!intervalStatus) {
+        intervalStatus = setInterval(interval, timeForInterval);
+        channel.send("Bot started")
+      } else {
+        channel.send("Bot is already on!")
+      }
+    } else {
+      channel.send("No stored summoners. Must add a summoner to turn bot on.")
     }
   }
 
-  if (command === 'stop' && summoner === 'bot') {
+  if (command === 'bot' && summoner === 'stop') {
     const channel = client.channels.cache.get(channel_id);
-    clearInterval(intervalId);
-    intervalId = null;
-    channel.send("Bot stopped")
+    if (!intervalStatus) {
+      channel.send("Bot is already off!")
+    } else {
+      clearInterval(intervalStatus);
+      intervalStatus = null;
+      channel.send("Bot stopped")
+    }
+  }
+
+  if (command === 'bot' && summoner === 'status') {
+    const channel = client.channels.cache.get(channel_id);
+    if (!intervalStatus) {
+      channel.send("Bot Status: OFF")
+    } else {
+      channel.send("Bot Status: ON")
+    }
+  }
+
+  if (command === 'current' && summoner === 'summoners') {
+    const channel = client.channels.cache.get(channel_id);
+    let currentSummoners = '';
+    if (players.length > 0) {
+      players.forEach((e, i) => {
+        currentSummoners += `${i + 1}. ${e.summonerName}\n`;
+      })
+      channel.send(currentSummoners)
+    } else {
+      channel.send("No stored summoners. Use 'add <summoner name> to add a summoner.")
+    }
   }
 
 });
