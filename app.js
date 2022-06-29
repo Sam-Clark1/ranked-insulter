@@ -155,6 +155,11 @@ client.on("messageCreate", message =>  {
     }
   }
 
+  if (command === 'bot' && summoner === 'help') {
+    const channel = client.channels.cache.get(channel_id);
+    channel.send("List of Avaliable Commands:\n 1. =add <summoner name>  --> Adds a summoner to database to be checked\n 2. =remove <summoner name>  --> Removes a summoner from database\n 3. =bot start  --> Starts interval to check each stored summoners most recent ranked game\n 4. =bot stop  --> Stops interval that checks each summoner in database\n 5. =bot status  --> Tells you if interval is on or off\n 6. =current summoners  --> Displays currently stored summoners in database\n 7. =bot help  --> Displays a list of commands for this bot ")
+  }
+
 });
 
 var count = 0
@@ -198,10 +203,12 @@ const interval = () => {
         }
       } 
     })
-    .catch(function (error) {
+      .catch(function (error) {
+        console.log(error);
+      });
+    }).catch(function (error) {
       console.log(error);
     });
-  });
   });
   console.log(count++);
 };
