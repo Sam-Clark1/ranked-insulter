@@ -210,8 +210,8 @@ const interval = () => {
       const KEKW = client.emojis.cache.find(emoji => emoji.name === "KEKW");
 
       if (currentTime>gameEndTimeLower && currentTime<gameEndTimeUpper) {
-        if(gameWin){
-          channel.send(`${KEKW} Hey everyone! ${e.summonerName} just won a ranked game in ${gameTimePlayed}! Let's congratualte them! ${KEKW}`);
+        if(!gameWin){
+          channel.send(`${KEKW} Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing a ranked game! Make fun of them! ${KEKW}`);
         }
       } 
     })
