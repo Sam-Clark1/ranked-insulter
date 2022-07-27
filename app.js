@@ -4,10 +4,6 @@ require('dotenv').config();
 const humanizeDuration = require("humanize-duration");
 
 const dayjs = require('dayjs');
-const UTC = require('dayjs/plugin/UTC');
-const advancedFormat = require('dayjs/plugin/advancedFormat');
-dayjs.extend(UTC);
-dayjs.extend(advancedFormat)
 
 const riot_key = process.env.API_KEY;
 const bot_key = process.env.TOKEN;
@@ -200,7 +196,7 @@ const interval = () => {
       }
       summonerIndex = summonerIndex.indexOf('true');
 
-      const currentTime = dayjs().utc().local().format('x');
+      const currentTime = dayjs().valueOf();
       
       const gameEndTime = matchData.data.info.gameEndTimestamp;
       const timeRange = timeForInterval*1.666667;
