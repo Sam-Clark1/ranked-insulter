@@ -212,6 +212,8 @@ const interval = () => {
       if (currentTime>gameEndTimeLower && currentTime<gameEndTimeUpper) {
         if(!gameWin){
           channel.send(`${KEKW} Hey everyone! ${e.summonerName} just wasted ${gameTimePlayed} of their life by losing a ranked game! Make fun of them! ${KEKW}`);
+        } else if (gameWin) {
+          channel.send(`Lets hear it for ${e.summonerName} winning a ranked game! Im sure the ${gameTimePlayed} spent playing was worth it ${KEKW}`);
         }
       } 
     })
