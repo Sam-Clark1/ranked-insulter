@@ -218,10 +218,12 @@ const interval = () => {
       } 
     })
       .catch(function (error) {
-        console.log(error);
+        error
+        console.log("no ranked games");
       });
     }).catch(function (error) {
-      console.log(error);
+      error
+      console.log("error");
     });
   });
 };
